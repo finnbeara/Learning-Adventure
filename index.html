@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cap'n Barnabee's Learning Adventure</title>
+    <style>
+        body { 
+            text-align: center; 
+            font-family: Arial, sans-serif; 
+            background: url('https://i.imgur.com/QF5eWEO.jpg') no-repeat center center/cover; 
+            color: rgb(20, 211, 240);
+            overflow: hidden;
+        }
+        .game-container { 
+            margin-top: 15px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 10px; 
+        }
+        .island { 
+            display: inline-block; 
+            padding: 5px; 
+            background-color: deepskyblue; 
+            color: white; 
+            font-weight: bold; 
+            border-radius: 30%; 
+            width: 30px; 
+            height: 40px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: 0.5s; 
+            box-shadow: 0px 0px 5px rgba(255,255,255,0.8);
+            animation: float 2s ease-in-out infinite;
+        }
+        .big-island { 
+            width: 50px; 
+            height: 50px; 
+            background-color: darkorange; 
+            font-size: 10px;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        .completed { background-color: goldenrod; }
+        .locked { opacity: 0.5; }
+        .hop-animation { animation: hop 0.6s ease-in-out; }
+        @keyframes hop {
+            0%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        .button { 
+            margin-top: 25px; 
+            padding: 15px 25px; 
+            font-size: 15px; 
+            cursor: pointer; 
+            background: gold; 
+            border: none; 
+            border-radius: 5px;
+            box-shadow: 0px 3px 5px rgba(0,0,0,0.2);
+        }
+        .progress-bar { 
+            width: 300px; 
+            height: 20px; 
+            background: rgba(255,255,255,0.5); 
+            margin: 10px auto; 
+            border-radius: 10px; 
+            overflow: hidden; 
+            box-shadow: 0px 2px 2px rgba(0,0,0,0.3);
+        }
+        .progress-fill { 
+            height: 100%; 
+            width: 0%; 
+            background: green; 
+            transition: width 0.5s ease-in-out; 
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 15px;
+            font-weight: bold;
+            color: rgb(244, 221, 17);
+            text-shadow: 1px 1px 2px black;
+        }
+        .treasure {
+            display: none;
+            margin-top: 15px;
+            font-size: 50px;
+            color: gold;
+            text-shadow: 2px 2px 5px black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cap'n Barnabee's Learning Adventure</h1>
+    <p id="progress">Lessons Completed: 0/48</p>
+    
+    <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+    </div>
+
+    <div class="game-container" id="islandContainer">
+        <!-- Islands will be generated dynamically -->
+    </div>
+
+    <button class="button" onclick="completeLesson()">Complete Lesson</button>
+    <p id="message" class="message"></p>
+    <p id="treasure" class="treasure">🎉 Congratulations! You've found the treasure! 🎉</p>
+
+    <audio id="lessonSound" src="https://www.fesliyanstudios.com/play-mp3/387"></audio>
+    <audio id="islandHopSound" src="https://www.fesliyanstudios.com/play-mp3/438"></audio>
+    <audio id="treasureSound" src="https://www.fesliyanstudios.com/play-mp3/464"></audio>
+
+    <script>
+        let lessonsCompleted = 0;
+        let currentUnit = 1;
+        let currentLesson = 1;
+        const totalLessons = 48; // 12 units * 4 lessons each
+
+        // Generate 4 small islands + 1 big island per unit (12 units total)
+        const islandContainer = document.getElementById("islandContainer");
+        for (let unit = 1; unit <= 12; unit++) {
+            for (let lesson = 1; lesson <= 4; lesson++) {
+                let smallIsland = document.createElement("div");
+                smallIsland.id = `unit${unit}-lesson${lesson}`;
+                smallIsland.className = (unit === 1 && lesson === 1) ? "island" : "island locked";
+                smallIsland.innerText = `L${lesson}`;
+                islandContainer.appendChild(smallIsland);
+            }
+            let bigIsland = document.createElement("div");
+            bigIsland.id = `unit${unit}-big`;
+            bigIsland.className = "island big-island locked";
+            bigIsland.innerText = `Unit ${unit}`;
+            islandContainer.appendChild(bigIsland);
+        }
+
+        function completeLesson() {
+            if (lessonsCompleted < totalLessons) {
+                lessonsCompleted++;
+                document.getElementById("progress").innerText = `Lessons Completed: ${lessonsCompleted}/48`;
+                document.getElementById("progress-fill").style.width = (lessonsCompleted % 4) * 25 + "%";
+                
+                document.getElementById("lessonSound").play();
+
+                let messages = [
+                    "Keep going, matey!",
+                    "You're sailing smoothly!",
+                    "One step closer to treasure!",
+                    "Great job! Almost there!"
+                ];
+                document.getElementById("message").innerText = messages[lessonsCompleted % 4];
+
+                moveToNextLesson();
+            }
+        }
+
+        function moveToNextLesson() {
+            let currentLessonEl = document.getElementById(`unit${currentUnit}-lesson${currentLesson}`);
+            currentLessonEl.classList.add("completed");
+
+            if (currentLesson < 4) {
+                let nextLessonEl = document.getElementById(`unit${currentUnit}-lesson${currentLesson + 1}`);
+                nextLessonEl.classList.remove("locked");
+                nextLessonEl.classList.add("hop-animation");
+                currentLesson++;
+            } else {
+                let bigIslandEl = document.getElementById(`unit${currentUnit}-big`);
+                bigIslandEl.classList.remove("locked");
+                bigIslandEl.classList.add("hop-animation");
+
+                document.getElementById("islandHopSound").play();
+                document.getElementById("message").innerText = "You've reached a BIG island! Huzzah!";
+
+                currentLesson = 1;
+                currentUnit++;
+
+                if (currentUnit > 12) {
+                    document.getElementById("treasure").style.display = "block";
+                    document.getElementById("treasureSound").play();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
